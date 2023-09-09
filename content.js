@@ -1,4 +1,4 @@
-const VIDEO_LENGTH_SELECTOR = ".ytp-time-duration";
+const VIDEO_LENGTH_SELECTOR = ":not(.ytp-live).ytp-time-display .ytp-time-duration";
 const OBERSVER_TIMEOUT = 10_000;
 
 // For some reason, after navigation YouTube glances previos video title as current title. We track it to avoid double length in title.
