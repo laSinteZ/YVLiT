@@ -1,7 +1,8 @@
 const VIDEO_LENGTH_SELECTOR = ".ytp-time-duration";
 const OBERSVER_TIMEOUT = 10_000;
-// Hack to identify that page title was updated. Otherwise, old title flashes with old video length AND new video length.
-const YVLiT = "(YVLiT)";
+
+// For some reason, after navigation YouTube glances previos video title as current title. We track it to avoid double length in title.
+let prevTitle = "";
 
 function isYouTubeVideoPage() {
   const hostname = window.location.hostname;
@@ -16,8 +17,10 @@ function isYouTubeVideoPage() {
 
 function updateTitle(videoLengthElement) {  
   const length = videoLengthElement?.textContent;
-  if (isYouTubeVideoPage() && !document.title.endsWith(YVLiT)) {
-    document.title = `${length} ${document.title} ${YVLiT}`;
+  if (isYouTubeVideoPage() && !document.title.includes(length) && document.title !== prevTitle) {
+    const newTitle = `${length} ${document.title}`;
+    document.title = newTitle;
+    prevTitle = newTitle;
   }
 }
 
