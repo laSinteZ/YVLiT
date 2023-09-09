@@ -9,13 +9,13 @@ function isYouTubeVideoPage() {
   const pathname = window.location.pathname;
 
   if (hostname === 'www.youtube.com' || hostname === 'm.youtube.com') {
-      return pathname.startsWith('/watch');
+    return pathname.startsWith('/watch');
   }
 
   return false;
 }
 
-function updateTitle(videoLengthElement) {  
+function updateTitle(videoLengthElement) {
   const length = videoLengthElement?.textContent;
   if (isYouTubeVideoPage() && !document.title.includes(length) && document.title !== prevTitle) {
     const newTitle = `${length} ${document.title}`;
@@ -44,20 +44,20 @@ function waitForElement(selector, callback) {
       return;
     }
   })
-  
+
   observer.observe(document.body, {
     childList: true,
     subtree: true
   });
-  
+
   /* 
     Disconnect observers after OBERSVER_TIMEOUT, just in case.
     Also, since this script doesn't differentiate between streams and videos,
     this will prevent infinite wait for observers in streams
     TODO: can we detect video/stream earlier and not call all of this for stream?
   */
-  timeoutId = setTimeout(function() {
-      observer.disconnect();
+  timeoutId = setTimeout(function () {
+    observer.disconnect();
   }, OBERSVER_TIMEOUT);
 }
 
