@@ -1,10 +1,23 @@
 const VIDEO_LENGTH_SELECTOR = ".ytp-time-duration";
 const OBERSVER_TIMEOUT = 10_000;
+// Hack to identify that page title was updated. Otherwise, old title flashes with old video length AND new video length.
+const YVLiT = "(YVLiT)";
+
+function isYouTubeVideoPage() {
+  const hostname = window.location.hostname;
+  const pathname = window.location.pathname;
+
+  if (hostname === 'www.youtube.com' || hostname === 'm.youtube.com') {
+      return pathname.startsWith('/watch');
+  }
+
+  return false;
+}
 
 function updateTitle(videoLengthElement) {  
   const length = videoLengthElement?.textContent;
-  if (!document.title.startsWith(length)) {
-    document.title = `${length} ${document.title}`;
+  if (isYouTubeVideoPage() && !document.title.endsWith(YVLiT)) {
+    document.title = `${length} ${document.title} ${YVLiT}`;
   }
 }
 

@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "YVLiT",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Prepend youtube video title with length",
   "permissions": [],
   "content_scripts": [
     {
-      "matches": ["*://www.youtube.com/watch?v=*"],
+      "matches": ["*://www.youtube.com/*"],
       "js": ["content.js"],
       "run_at": "document_end"
     }
