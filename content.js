@@ -1,3 +1,4 @@
+// :not(.ytp-live) is needed to avoid selecting duration in live streams
 const VIDEO_LENGTH_SELECTOR = ":not(.ytp-live).ytp-time-display .ytp-time-duration";
 const OBERSVER_TIMEOUT = 10_000;
 
@@ -5,13 +6,9 @@ const OBERSVER_TIMEOUT = 10_000;
 let prevTitle = "";
 
 function isYouTubeVideoPage() {
-  const hostname = window.location.hostname;
-  const pathname = window.location.pathname;
-
-  if (hostname === 'www.youtube.com' || hostname === 'm.youtube.com') {
-    return pathname.startsWith('/watch');
+  if (window.location.hostname === 'www.youtube.com' || window.location.hostname === 'm.youtube.com') {
+    return window.location.pathname.startsWith('/watch');
   }
-
   return false;
 }
 
@@ -60,18 +57,18 @@ function waitForElement(selector, callback) {
     observer.disconnect();
   }, OBERSVER_TIMEOUT);
 }
-function updateTitleAfterChange(mutationsList) {
-  for (let mutation of mutationsList) {
-    if (mutation.type === 'childList') {
-      waitForElement(VIDEO_LENGTH_SELECTOR, updateTitle);
-    }
-  }
-};
 
 // Do it once, in case title doesn't change for some reason
 waitForElement(VIDEO_LENGTH_SELECTOR, updateTitle);
+
 // Observe changes to the document's title (youtube overrides it a few times after initial page load)
-waitForElement('title', (title) => {
-  const observer = new MutationObserver(updateTitleAfterChange);
-  observer.observe(title, { childList: true });
+waitForElement('title', function (titleElement) {
+  const observer = new MutationObserver(function (mutationsList) {
+    for (let mutation of mutationsList) {
+      if (mutation.type === 'childList') {
+        waitForElement(VIDEO_LENGTH_SELECTOR, updateTitle);
+      }
+    }
+  });
+  observer.observe(titleElement, { childList: true });
 })
