@@ -60,10 +60,6 @@ function waitForElement(selector, callback) {
     observer.disconnect();
   }, OBERSVER_TIMEOUT);
 }
-
-// Observe changes to the document's title (youtube overrides it a few times after initial page load)
-const documentTitle = document.querySelector('head > title');
-
 function updateTitleAfterChange(mutationsList) {
   for (let mutation of mutationsList) {
     if (mutation.type === 'childList') {
@@ -74,4 +70,8 @@ function updateTitleAfterChange(mutationsList) {
 
 // Do it once, in case title doesn't change for some reason
 waitForElement(VIDEO_LENGTH_SELECTOR, updateTitle);
-const observer = new MutationObserver(updateTitleAfterChange).observe(documentTitle, { childList: true });
+// Observe changes to the document's title (youtube overrides it a few times after initial page load)
+waitForElement('title', (title) => {
+  const observer = new MutationObserver(updateTitleAfterChange);
+  observer.observe(title, { childList: true });
+})
