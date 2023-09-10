@@ -72,7 +72,6 @@ waitForElement('title', function (titleElement) {
   const observer = new MutationObserver(function (mutationsList) {
     for (let mutation of mutationsList) {
       if (mutation.type === 'childList') {
-        console.log(document.querySelector("title"))
         waitForElement(VIDEO_LENGTH_SELECTOR, updateTitle);
       }
     }
