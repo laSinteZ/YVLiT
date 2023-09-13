@@ -1,12 +1,24 @@
-// :not(.ytp-live) is needed to avoid selecting duration in live streams
-const VIDEO_LENGTH_SELECTOR = ":not(.ytp-live).ytp-time-display .ytp-time-duration";
-const OBERSVER_TIMEOUT = 10_000;
-
 // For some reason, after navigation YouTube glances previos video title as current title. We track it to avoid double length in title.
 let prevTitle = "";
-// Fix for videos with length = 0:00, caused by Disable HTML5 Autoplay (Reloaded) https://chrome.google.com/webstore/detail/disable-html5-autoplay-re/cafckninonjkogajnihihlnnimmkndgf
-let prevLength = "";
-const EMPTY_LENGTH = "0:00";
+
+console.log("ytInitialData")
+console.log(window?.ytInitialData);
+setTimeout(() => {
+  console.log("ytInitialData")
+  console.log(window?.ytInitialData);
+}, 10000)
+function secondsToHMS(totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts = [];
+  if (hours) parts.push(hours);
+  parts.push(minutes.toString().padStart(hours ? 2 : 1, '0'));
+  parts.push(seconds.toString().padStart(2, '0'));
+
+  return parts.join(':');
+}
 
 function isYouTubeVideoPage() {
   if (window.location.hostname === 'www.youtube.com' || window.location.hostname === 'm.youtube.com') {
@@ -15,11 +27,20 @@ function isYouTubeVideoPage() {
   return false;
 }
 
-function updateTitle(videoLengthElement) {
-  // Fix for videos with length = 0:00, caused by Disable HTML5 Autoplay (Reloaded) https://chrome.google.com/webstore/detail/disable-html5-autoplay-re/cafckninonjkogajnihihlnnimmkndgf
-  const lengthRaw = videoLengthElement?.textContent;
-  const length = lengthRaw === EMPTY_LENGTH ? prevLength : lengthRaw;
-  prevLength = length;
+// We know that ytInitialPlayerResponse exists.
+function isLiveStream() {
+  return window.ytInitialPlayerResponse?.videoDetails?.isLive
+}
+
+function getDurationInSeconds() {
+  return parseInt(window.ytInitialPlayerResponse?.videoDetails?.lengthSeconds) || 0;
+}
+
+function updateTitle() {
+  if (isLiveStream()) return;
+  const lengthRaw = getDurationInSeconds();
+  if (!lengthRaw) return;
+  const length = secondsToHMS(lengthRaw);
   if (isYouTubeVideoPage() && !document.title.includes(length) && document.title !== prevTitle) {
     const newTitle = `${length} ${document.title}`;
     document.title = newTitle;
@@ -27,54 +48,14 @@ function updateTitle(videoLengthElement) {
   }
 }
 
-function waitForElement(selector, callback) {
-  const element = document.querySelector(selector);
-  if (element) {
-    callback(element);
-    return;
-  }
-
-  let timeoutId;
-
-  const observer = new MutationObserver((_mutationsList, observer) => {
-    const element = document.querySelector(selector);
-    if (element) {
-      callback(element);
-      observer.disconnect();
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      return;
-    }
-  })
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
-
-  /* 
-    Disconnect observers after OBERSVER_TIMEOUT, just in case.
-    Also, since this script doesn't differentiate between streams and videos,
-    this will prevent infinite wait for observers in streams
-    TODO: can we detect video/stream earlier and not call all of this for stream?
-  */
-  timeoutId = setTimeout(function () {
-    observer.disconnect();
-  }, OBERSVER_TIMEOUT);
-}
-
-// Do it once, in case title doesn't change for some reason
-waitForElement(VIDEO_LENGTH_SELECTOR, updateTitle);
+updateTitle();
 
 // Observe changes to the document's title (youtube overrides it a few times after initial page load)
-waitForElement('title', function (titleElement) {
-  const observer = new MutationObserver(function (mutationsList) {
-    for (let mutation of mutationsList) {
-      if (mutation.type === 'childList') {
-        waitForElement(VIDEO_LENGTH_SELECTOR, updateTitle);
-      }
+const observer = new MutationObserver(function (mutationsList) {
+  for (let mutation of mutationsList) {
+    if (mutation.type === 'childList') {
+      updateTitle();
     }
-  });
-  observer.observe(titleElement, { childList: true });
-})
+  }
+});
+observer.observe(document.querySelector("title"), { childList: true });
