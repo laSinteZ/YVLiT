@@ -1,6 +1,7 @@
 // For some reason, after navigation YouTube glances previos video title as current title. We track it to avoid double length in title.
 let prevTitle = "";
 
+// Seems like I can't access window variables, eh
 console.log("ytInitialData")
 console.log(window?.ytInitialData);
 setTimeout(() => {
